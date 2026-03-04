@@ -9,6 +9,7 @@ public class Account {
     private double balance;
 
     public Account() {
+
     }
 
     // this constructor used for in the creationAccount at signup

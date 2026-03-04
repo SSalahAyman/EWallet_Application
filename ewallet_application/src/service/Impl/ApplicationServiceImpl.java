@@ -45,7 +45,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private void signup(){
         String userName;
+        String password;
+        float age;
+        String phoneNumber;
         boolean validUserName;
+        boolean validPassword;
+        boolean validAge;
+        boolean validPhoneNumber;
         do {
             System.out.println("please enter username : ");
             userName=input.next();
@@ -55,16 +61,37 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }while(!validUserName);
 
-        System.out.println("please enter password : ");
-        String password=input.next();
-        System.out.println("please enter age : ");
-        float age = input.nextFloat();
-        System.out.println("please enter phoneNumber : ");
-        String phoneNumber = input.next();
+        do {
+            System.out.println("please enter password : ");
+            password=input.next();
+            validPassword=validationService.validatePassword(password);
+            if (!validPassword){
+                System.out.println("Invalid password");
+            }
+        }while(!validPassword);
 
-        Account account=new Account(userName,password,phoneNumber,age);  // here every time you signup with your information create account (object) with your Info with set yourBalance with zero
+        do {
+            System.out.println("please enter age : ");
+            age = input.nextFloat();
+            validAge=validationService.validateAge(age);
+            if (!validAge){
+                System.out.println("Invalid age");
+            }
+        }while(!validAge);
 
-        Account accountCreated=accountService.createAccount(account);
+        do{
+            System.out.println("please enter phoneNumber : ");
+            phoneNumber = input.next();
+            validPhoneNumber=validationService.validatePhoneNumber(phoneNumber);
+            if (!validPhoneNumber){
+                System.out.println("Invalid phoneNumber");
+            }
+        }while(!validPhoneNumber);
+
+        // here after validate on all input user info of the account ,create object of account and assign this info to the attributes of Account with set balance with zero
+        Account account=new Account(userName,password,phoneNumber,age);
+
+        Account accountCreated=accountService.createAccount(account);  // here we created account by storing the account with info of specific user to the wallet
 
         if (Objects.nonNull(accountCreated)){
             System.out.println("account created success :) ......");
@@ -76,21 +103,33 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     private void login(){
-        System.out.println("please enter username : ");
-        String userName=input.next();
-        System.out.println("please enter password : ");
-        String password=input.next();
+        boolean isLogin=true;
+        int validAttempts=0;
+        while(isLogin){
+            System.out.println("please enter username : ");
+            String userName=input.next();
+            System.out.println("please enter password : ");
+            String password=input.next();
 
-        Account account=new Account(userName,password);
+            Account account=new Account(userName,password);
 
-        Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
+            Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
 
-        if (Objects.nonNull(accountLogin)){
-            System.out.println("login success :) ......");
-            showProfile(accountLogin);
-        } else{
-            System.out.println("Invalid userName or password :( .......");
+            if (Objects.nonNull(accountLogin)){
+                System.out.println("login success :) ......");
+                isLogin=false;
+                showProfile(accountLogin);
+            } else{
+                System.out.println("Invalid userName or password :( .......");
+                validAttempts++;
+            }
+
+            if(validAttempts==4){
+                System.out.println("many times Invalid login ,pls contact with admin :(.......");
+                break;
+            }
         }
+
     }
 
     private void showProfile(Account account){
