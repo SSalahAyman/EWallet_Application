@@ -1,6 +1,7 @@
 package service;
 
 import model.Account;
+import model.TransactionResult;
 
 public interface AccountService {
 
@@ -8,8 +9,8 @@ public interface AccountService {
 
     Account getAccountByUserNameAndPassword(Account account);
 
-    Account deposit(Account account, double amount);
+    TransactionResult deposit(Account account, double amount);
 
-    Account withDraw(Account account, double amount);
+    TransactionResult withDraw(Account account, double amount);
 
 }

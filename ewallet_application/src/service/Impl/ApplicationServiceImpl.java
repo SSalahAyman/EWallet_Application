@@ -1,5 +1,6 @@
 package service.Impl;
 import model.Account;
+import model.TransactionResult;
 import service.AccountService;
 import service.ApplicationService;
 import service.ValidationService;
@@ -205,12 +206,22 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         System.out.println("--------------> please enter amount to withdraw.....");
         double amount=input.nextDouble();
-        Account accountWithDrawSuccess = accountService.withDraw(account,amount);
+        TransactionResult withDrawResult = accountService.withDraw(account,amount);
 
-        if(Objects.nonNull(accountWithDrawSuccess)){
-            System.out.println("WithDraw Success and current balance is : " + accountWithDrawSuccess.getBalance());
+        if(withDrawResult.isSuccess()){
+            System.out.println(withDrawResult.getMessage());
+            System.out.println("current & updated balance is : " + withDrawResult.getAccount().getBalance());
         } else{
-            System.out.println("withDraw failed");  // ❗❗❗❗ here I need to specific this failed to the three cases of failed withdraw with (account not exist or amount is not greater than 100 or amount greater than balance)
+            System.out.println("withDraw failed : "+withDrawResult.getMessage());  // ❗❗❗❗ here I need to specific this failed to the three cases of failed withdraw with (account not exist or amount is not greater than 100 or amount greater than balance)
+        }
+
+        // Additional helpful tips based on failure case
+        if(withDrawResult.getMessage().contains("not found")){
+            System.out.println("💡 Tip: Please login again or contact support admin");
+        } else if (withDrawResult.getMessage().contains("Insufficient")) {
+            System.out.println("💡 Tip: You can deposit more money or try a smaller amount");
+        } else if (withDrawResult.getMessage().contains("must be at least 100 EGP")) {
+            System.out.println("💡 Tip: Minimum withdrawal amount is 100 EGP");
         }
     }
 
@@ -225,12 +236,20 @@ public class ApplicationServiceImpl implements ApplicationService {
         System.out.println("--------------> please enter amount to deposit it.....");
         double amount=input.nextDouble();
 
-        Account accountDepositSuccess = accountService.deposit(account,amount);  // pass the account from signup or login and the amount that you want to deposit it to this account , and this function check on account is exist or not & amount
+        TransactionResult depositResult = accountService.deposit(account,amount);  // pass the account from signup or login and the amount that you want to deposit it to this account , and this function check on account is exist or not & amount
 
-        if(Objects.nonNull(accountDepositSuccess)){
-            System.out.println("Deposit Success and current balance is : " + accountDepositSuccess.getBalance());
+        if(depositResult.isSuccess()){
+            System.out.println(depositResult.getMessage());
+            System.out.println("current & updated balance is : " + depositResult.getAccount().getBalance());
         } else{
-            System.out.println("Deposit failed");  // ❗❗❗❗ here I need to specific this failed to the two cases of failed deposit with (account not exist or amount is not greater than 100)
+            System.out.println("Deposit failed : "+depositResult.getMessage());  // ❗❗❗❗ here I need to specific this failed to the two cases of failed deposit with (account not exist or amount is not greater than 100)
+        }
+
+        // Additional helpful tips based on failure case
+        if(depositResult.getMessage().contains("not found")){
+            System.out.println("💡 Tip: Please login again or contact support admin");
+        } else if (depositResult.getMessage().contains("must be at least 100 EGP")){
+            System.out.println("💡 Tip: Minimum deposit amount is 100 EGP");
         }
 
     }

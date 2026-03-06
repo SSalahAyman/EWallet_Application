@@ -2,6 +2,7 @@ package service.Impl;
 
 import model.Account;
 import model.EWalletSystem;
+import model.TransactionResult;
 import service.AccountService;
 
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.Optional;
 
 public class AccountServiceImpl implements AccountService {
     private EWalletSystem eWalletSystem= new EWalletSystem();
-
     /**
      * createAccount
      * @param account
@@ -49,47 +49,51 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    public Account deposit(Account account, double amount){   // this function is return account in one case Or return null in two cases
+    public TransactionResult deposit(Account account, double amount){   // this function is return account in one case Or return null in two cases
         // make sure account exist in E-wallet system or not first
         // amount >=100
         List<Account> accounts = eWalletSystem.getListOfAccounts();  // Retrieve all existing account from the system
         Optional<Account> optionalAccount = accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName()) && acc.getPassword().equals(account.getPassword())).findAny(); // search for an account with matching username & password
 
+        // Case 1: Account not found
         if(optionalAccount.isEmpty()){
-            return null;
+            return new TransactionResult(null,"❌ Account not found!",false,"Deposit");
         }
-        // if not return null from first case so , this account exist in system so we verify or check on the amount is >=100 before deposit it
+
+        // Case 2: Amount less than minimum deposit (100 EGP) [After checking on account exist or not , we check on the amount]
         if (amount<100){
-            return null;
+            return new TransactionResult(null,"❌ Deposit amount must be at least 100 EGP.",false,"Deposit");
         }
-        // if your reach for this check so that means the account is exist in system 7 amount is ready to deposit it because it greater than 100
+
+        // Success Case : if your reach for this check so that means the account is exist in system & amount is ready to deposit it because it greater than 100
         Account accountDeposit = optionalAccount.get();
-        accountDeposit.setBalance(accountDeposit.getBalance()+amount);
-        return accountDeposit;
+        accountDeposit.setBalance(accountDeposit.getBalance() + amount);
+        return new TransactionResult(accountDeposit,"✅ Deposit successful!",true,"Deposit");
     }
 
     @Override
-    public Account withDraw(Account account, double amount) {
+    public TransactionResult withDraw(Account account, double amount) {
         List<Account> accounts = eWalletSystem.getListOfAccounts();  // Retrieve all existing account from the system
         Optional<Account> optionalAccount = accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName()) && acc.getPassword().equals(account.getPassword())).findAny(); // search for an account with matching username & password
 
+        // Case 1: Account not found (need to check the account is exist in system or not)
         if(optionalAccount.isEmpty()){
-            return null;
+            return new TransactionResult(null,"❌ Account not found! ",false,"withDraw");
         }
-        // if not return null from first case so , this account exist in system so we verify or check on the amount that user want to withDraw must greater than 100
+        // Case 2: Amount less than minimum withdrawal (100 EGP) [After checking on account exist or not , we check on the amount]
         if (amount<100){
-            return null;
+            return new TransactionResult(null,"❌ Withdrawal amount must be at least 100 EGP!",false,"withDraw");
         }
 
         Account accountWithDraw = optionalAccount.get();
-        // if not return null from second case so , this account exist in system & amount > 100 , so we need to check the amount that you want withDraw it less than your balance
+        // Case 3: Insufficient balance (checking on your balance is less than the amount that you want withDraw it)
         if (accountWithDraw.getBalance()<amount){
-            return null;
+            return new TransactionResult(null,"❌ Insufficient balance!",false,"withDraw");
         }
 
-        // if your reach for this check so that means the account is exist in system & amount that user want to withDraw is ready to withDraw it because it greater than 100 & the amount that you want to withDraw it less than balance
+        // Success Case : if your reach for this check so that means the account is exist in system & amount that user want to withDraw is ready to withDraw it because it greater than 100 & the amount that you want to withDraw it less than balance
         accountWithDraw.setBalance(accountWithDraw.getBalance() - amount);
-        return accountWithDraw;
+        return new TransactionResult(accountWithDraw,"✅ withDraw successful!",true,"withDraw");
     }
 
 
