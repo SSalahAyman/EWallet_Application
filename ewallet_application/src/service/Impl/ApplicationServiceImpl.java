@@ -155,7 +155,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                     System.out.println("Your balance is : "+ account.getBalance());
                     break;
                 case 5:
-
+                    ShowAccountDetails(account);
                     break;
                 case 6:
                     changePassword(account);
@@ -319,6 +319,42 @@ public class ApplicationServiceImpl implements ApplicationService {
             System.out.println("changePasswordResult failed : " + changePasswordResult.getMessage());
         }
 
+    }
+
+    private void ShowAccountDetails(Account account) {
+        // Fetch the latest account data
+        Account updatedAccount = accountService.getAccountByUserNameAndPassword(account);
+
+        if (updatedAccount == null) {
+            System.out.println("❌ Unable to fetch account details. Please login again.");
+            return;
+        }
+
+        System.out.println("══════════════════════════════════════");
+        System.out.println("         ACCOUNT DETAILS              ");
+        System.out.println("══════════════════════════════════════");
+        System.out.println("Username      : " + updatedAccount.getUserName());
+
+        // Ask user if they want to see password
+        System.out.println("Do you want to view your password?");
+        System.out.println("1. Yes (show actual password)");
+        System.out.println("2. No (show masked password)");
+        System.out.print("Your choice: ");
+        int choice = input.nextInt();
+
+        if (choice == 1) {
+            System.out.println("Password      : " + updatedAccount.getPassword() + " (visible)");
+        } else if (choice ==2 ) {
+            String maskedPassword = updatedAccount.getPassword().replaceAll(".","*");
+            System.out.println("Password      : " + maskedPassword + " (masked)");
+        } else {
+            System.out.println("invalid choice");
+        }
+
+        System.out.println("Phone Number  : " + updatedAccount.getPhoneNumber());
+        System.out.println("Age           : " + updatedAccount.getAge());
+        System.out.println("Balance       : " + updatedAccount.getBalance());
+        System.out.println("══════════════════════════════════════");
     }
 
 
