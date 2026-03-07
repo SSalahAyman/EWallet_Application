@@ -4,11 +4,13 @@ import model.Account;
 
 public interface ValidationService {
 
-    boolean validateUserName (String userName);
+    boolean validateUserNameFormat (String userName);
 
-    boolean validatePassword(String password);
+    boolean validatePasswordFormat(String password);
 
-    boolean validateAge(float age);
+    boolean validateAgeFormat(float age);
 
-    boolean validatePhoneNumber(String phoneNumber);
+    boolean validatePhoneNumberFormat(String phoneNumber);
+
+    boolean validationPasswordMatch(Account account,String inputOldPassword);
 }

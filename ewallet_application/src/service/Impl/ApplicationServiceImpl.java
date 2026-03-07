@@ -56,36 +56,36 @@ public class ApplicationServiceImpl implements ApplicationService {
         do {
             System.out.println("please enter username : ");
             userName=input.next();
-            validUserName=validationService.validateUserName(userName);
+            validUserName=validationService.validateUserNameFormat(userName);
             if(!validUserName){
-                System.out.println("Invalid userName");
+                System.out.println("Invalid userName format");
             }
         }while(!validUserName);
 
         do {
             System.out.println("please enter password : ");
             password=input.next();
-            validPassword=validationService.validatePassword(password);
+            validPassword=validationService.validatePasswordFormat(password);
             if (!validPassword){
-                System.out.println("Invalid password");
+                System.out.println("Invalid password format");
             }
         }while(!validPassword);
 
         do {
             System.out.println("please enter age : ");
             age = input.nextFloat();
-            validAge=validationService.validateAge(age);
+            validAge=validationService.validateAgeFormat(age);
             if (!validAge){
-                System.out.println("Invalid age");
+                System.out.println("Invalid age format");
             }
         }while(!validAge);
 
         do{
             System.out.println("please enter phoneNumber : ");
             phoneNumber = input.next();
-            validPhoneNumber=validationService.validatePhoneNumber(phoneNumber);
+            validPhoneNumber=validationService.validatePhoneNumberFormat(phoneNumber);
             if (!validPhoneNumber){
-                System.out.println("Invalid phoneNumber");
+                System.out.println("Invalid phoneNumber format");
             }
         }while(!validPhoneNumber);
 
@@ -104,9 +104,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     private void login(){
-        boolean isLogin=true;
+        boolean isLogin=false;
         int validAttempts=0;
-        while(isLogin){
+        while(!isLogin){
             System.out.println("please enter username : ");
             String userName=input.next();
             System.out.println("please enter password : ");
@@ -118,7 +118,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
             if (Objects.nonNull(accountLogin)){
                 System.out.println("login success :) ......");
-                isLogin=false;
+                isLogin=true;
                 showProfile(accountLogin);
             } else{
                 System.out.println("Invalid userName or password :( .......");
@@ -152,13 +152,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                     break;
                 case 4:
-
+                    System.out.println("Your balance is : "+ account.getBalance());
                     break;
                 case 5:
 
                     break;
                 case 6:
-
+                    changePassword(account);
                     break;
                 case 7:
                     System.out.println("logout success have a nice day .....");
@@ -195,6 +195,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
     }
+
 
     private void withDraw(Account account) {
         System.out.println("--------> your details is <---------------");
@@ -251,6 +252,74 @@ public class ApplicationServiceImpl implements ApplicationService {
         } else if (depositResult.getMessage().contains("must be at least 100 EGP")){
             System.out.println("💡 Tip: Minimum deposit amount is 100 EGP");
         }
+    }
+
+
+    private void changePassword(Account account) {
+        String inputOldPassword = "";
+        String inputNewPassword ="";
+        int oldPasswordAttempts=0;
+        int newPasswordAttempts=0;
+        final int maxAttempts=3;
+        boolean passwordFormat = false;
+
+        // Step 1: Verify old password (max 3 attempts)
+        while (oldPasswordAttempts < maxAttempts) {
+            System.out.println("--------------> please enter your current password to change it.....");
+             inputOldPassword = input.next();
+
+            boolean isPasswordMatch = validationService.validationPasswordMatch(account, inputOldPassword);
+            if (isPasswordMatch) {
+                System.out.println("current password verified successfully");
+                break;  // exit from the loop if password matches
+            } else {
+                oldPasswordAttempts++;
+                int remainingAttempts = maxAttempts - oldPasswordAttempts;
+
+                if (remainingAttempts > 0){
+                    System.out.println("wrong password ! you have "+remainingAttempts+" attempts remaining");
+                } else{
+                    System.out.println("you've exceeded the maximum number of attempts for password verification");
+                    System.out.println("many times Invalid inputs ,pls contact with admin if you forget your password");
+                    return; // Exit the method after reach max attempts
+                }
+            }
+
+        }
+
+        // Step 2: Enter new password (max 3 attempts)
+        while (newPasswordAttempts < maxAttempts ) {
+            System.out.println("--------------> please enter your new password.....");
+             inputNewPassword = input.next();
+
+            boolean isValidPasswordFormat = validationService.validatePasswordFormat(inputNewPassword);
+            if (isValidPasswordFormat) {
+                System.out.println("Successful password format");
+                break ;  // exit from the loop if password formats success
+            } else {
+                newPasswordAttempts ++;
+                int remainingAttempts = maxAttempts - newPasswordAttempts;
+
+                if (remainingAttempts > 0){
+                    System.out.println("wrong password ! you have "+remainingAttempts+" attempts remaining");
+                } else{
+                    System.out.println("you've exceeded the maximum number of attempts for entering new password");
+                    return; // Exit the method after reach max attempts
+                }
+            }
+        }
+
+        // Step 3: Update password
+        TransactionResult changePasswordResult = accountService.changePassword(account, inputOldPassword, inputNewPassword);
+
+        if (changePasswordResult.isSuccess()) {
+            System.out.println(changePasswordResult.getMessage());
+            System.out.println("your new password is updated to " + changePasswordResult.getAccount().getPassword());
+        } else {
+            System.out.println("changePasswordResult failed : " + changePasswordResult.getMessage());
+        }
 
     }
+
+
 }

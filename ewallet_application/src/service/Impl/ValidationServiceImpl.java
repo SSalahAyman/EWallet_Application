@@ -1,11 +1,12 @@
 package service.Impl;
 
+import model.Account;
 import service.ValidationService;
 
 public class ValidationServiceImpl implements ValidationService {
 
     @Override
-    public boolean validateUserName(String userName) {
+    public boolean validateUserNameFormat(String userName) {
         if (userName.length()>3 && Character.isUpperCase(userName.charAt(0))){
             return true;
         }
@@ -19,7 +20,7 @@ public class ValidationServiceImpl implements ValidationService {
      *  The ! at the beginning means "NOT" - so we're checking if the password is NOT made up of only letters and numbers
      */
     @Override
-    public boolean validatePassword(String password) {
+    public boolean validatePasswordFormat(String password) {
         if (password.length() >8 && !password.matches("[a-zA-Z0-9]*")){
             return true;
         }
@@ -27,7 +28,7 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     @Override
-    public boolean validateAge(float age) {
+    public boolean validateAgeFormat(float age) {
         if (age >=18){
             return true;
         }
@@ -40,8 +41,16 @@ public class ValidationServiceImpl implements ValidationService {
      * [0-9]{8} >> means Exactly The remaining 8 digits can be any number 0-9
      */
     @Override
-    public boolean validatePhoneNumber(String phoneNumber) {
+    public boolean validatePhoneNumberFormat(String phoneNumber) {
         if (phoneNumber.matches("01[0-2,5]{1}[0-9]{8}")){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean validationPasswordMatch(Account account , String inputOldPassword) {
+        if (inputOldPassword.equals(account.getPassword())){
             return true;
         }
         return false;

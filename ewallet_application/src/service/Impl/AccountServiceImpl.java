@@ -7,6 +7,7 @@ import service.AccountService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
 
 public class AccountServiceImpl implements AccountService {
     private EWalletSystem eWalletSystem= new EWalletSystem();
@@ -94,6 +95,16 @@ public class AccountServiceImpl implements AccountService {
         // Success Case : if your reach for this check so that means the account is exist in system & amount that user want to withDraw is ready to withDraw it because it greater than 100 & the amount that you want to withDraw it less than balance
         accountWithDraw.setBalance(accountWithDraw.getBalance() - amount);
         return new TransactionResult(accountWithDraw,"✅ withDraw successful!",true,"withDraw");
+    }
+
+    @Override
+    public TransactionResult changePassword(Account account, String oldPassword, String newPassword) {
+        if (newPassword.equals(account.getPassword())){
+            return new TransactionResult(null,"❌ cannot change password because new pass is same old pass",false,"change password");
+        } else {
+            account.setPassword(newPassword);
+            return new TransactionResult(account,"✅ change password successful!",true,"change password");
+        }
     }
 
 

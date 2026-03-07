@@ -13,4 +13,6 @@ public interface AccountService {
 
     TransactionResult withDraw(Account account, double amount);
 
+    TransactionResult changePassword(Account account, String oldPassword,String newPassword);
+
 }
