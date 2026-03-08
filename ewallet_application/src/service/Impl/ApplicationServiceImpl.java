@@ -149,7 +149,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                     withDraw(account);
                     break;
                 case 3:
-
+                    transferMoney(account);
                     break;
                 case 4:
                     System.out.println("Your balance is : "+ account.getBalance());
@@ -195,6 +195,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
     }
+
 
 
     private void withDraw(Account account) {
@@ -355,6 +356,48 @@ public class ApplicationServiceImpl implements ApplicationService {
         System.out.println("Age           : " + updatedAccount.getAge());
         System.out.println("Balance       : " + updatedAccount.getBalance());
         System.out.println("══════════════════════════════════════");
+    }
+
+    private void transferMoney(Account account) {
+        System.out.println("══════════════════════════════════════");
+        System.out.println("           MONEY TRANSFER              ");
+        System.out.println("══════════════════════════════════════");
+
+        // show current balance
+        System.out.println("Your current balance : "+account.getBalance());
+
+        // Get destination username
+        System.out.print("Enter destination username : ");
+        String destinationUserName = input.next();
+
+        // Get amount to transfer
+        System.out.print("Enter amount to transfer : ");
+        double amount = input.nextDouble();
+
+        // Confirm transfer
+        System.out.println("Transfer Summary :");
+        System.out.println("From: "+account.getUserName());
+        System.out.println("To: "+destinationUserName);
+        System.out.println("Amount: "+amount);
+        System.out.print("Confirm transfer?  (1.  Yes / 2.  No) : ");
+        int confirm = input.nextInt();
+
+        if(confirm !=1){
+            System.out.println("❌ Transfer cancelled.");
+            return;
+        }
+
+        // Perform transfer
+        TransactionResult transferResult = accountService.transferMoney(account,destinationUserName,amount);
+        if (transferResult.isSuccess()){
+            System.out.println(transferResult.getMessage() + " "+ transferResult.getAccount().getBalance());
+        } else {
+            System.out.println("Failed Transferred : "+transferResult.getMessage());
+        }
+        System.out.println("\n══════════════════════════════════════");
+
+
+
     }
 
 

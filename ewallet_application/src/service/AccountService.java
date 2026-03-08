@@ -15,4 +15,6 @@ public interface AccountService {
 
     TransactionResult changePassword(Account account, String oldPassword,String newPassword);
 
+    TransactionResult transferMoney(Account senderAccount,String receiverName, double amount);
+
 }

@@ -5,9 +5,9 @@ import model.EWalletSystem;
 import model.TransactionResult;
 import service.AccountService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 public class AccountServiceImpl implements AccountService {
     private EWalletSystem eWalletSystem= new EWalletSystem();
@@ -105,6 +105,52 @@ public class AccountServiceImpl implements AccountService {
             account.setPassword(newPassword);
             return new TransactionResult(account,"✅ change password successful!",true,"change password");
         }
+    }
+
+    @Override
+    public TransactionResult transferMoney(Account senderAccount, String receiverName, double amount) {
+        List<Account> accounts = eWalletSystem.getListOfAccounts();
+
+        // case 1 : check on the sender account is exist or not in the system
+        Optional<Account> optionalSender = accounts.stream().filter(acc->acc.getUserName().equals(senderAccount.getUserName()) && acc.getPassword().equals(senderAccount.getPassword())).findAny();
+        if (optionalSender.isEmpty()){
+            return new TransactionResult(null,"❌ Account not found! ",false,"TransferMoney");
+        }
+
+        Account sender = optionalSender.get();
+
+        // case 2 : Check if destination username is valid (not empty)
+        if(receiverName == null || receiverName.trim().isEmpty()){
+            return new TransactionResult(null,"❌ Destination username cannot be empty! ",false,"TransferMoney");
+        }
+
+        // case 3 : prevent transfer to myself
+        if(sender.getUserName().equals(receiverName)){
+            return new TransactionResult(null,"❌ Cannot transfer money to yourself! ",false,"TransferMoney");
+        }
+
+        // case 4 : check if destination account is exist
+        Optional<Account> optionalReceiver = accounts.stream().filter(acc -> acc.getUserName().equals(receiverName)).findAny();
+        if (optionalReceiver.isEmpty()){
+            return new TransactionResult(null,"❌ Destination account not found! ",false,"TransferMoney");
+        }
+
+        Account receiver = optionalReceiver.get();
+
+        // case 5 : check amount > 0
+        if (amount <= 0){
+            return new TransactionResult(null,"❌ Transfer amount must be greater than 0 EGP! ",false,"TransferMoney");
+        }
+
+        // case 6 : Check sufficient balance
+        if (amount>sender.getBalance()){
+            return new TransactionResult(null , "❌ Insufficient balance in your account ",false,"TransferMoney");
+        }
+
+        // Success case : perform transfer
+        sender.setBalance(sender.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
+        return new TransactionResult(sender,"✅ Successfully transferred ",true,"TransferMoney");
     }
 
 
