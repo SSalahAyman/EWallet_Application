@@ -3,6 +3,7 @@ package service.Impl;
 import model.Account;
 import model.EWalletSystem;
 import model.TransactionResult;
+import repository.AccountRepository;
 import service.AccountService;
 
 import java.util.ArrayList;
@@ -10,7 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class AccountServiceImpl implements AccountService {
-    private EWalletSystem eWalletSystem= new EWalletSystem();
+    private final AccountRepository accountRepository;
+
+    public AccountServiceImpl(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
+
     /**
      * createAccount
      * @param account
@@ -20,14 +26,13 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public Account createAccount(Account account) {
-        List<Account> accounts = eWalletSystem.getListOfAccounts();
-        Optional<Account> optionalAccount =accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName()) && acc.getPhoneNumber().equals(account.getPhoneNumber())).findAny();
+        boolean exists = accountRepository.findByUsernameAndPhoneNumber(account.getUserName(), account.getPhoneNumber()).isPresent();
 
-        if (optionalAccount.isPresent()){  // means if any account in listOfAccounts is finding with same username with username && phoneNumber of Account that user created , so return false that means cannot add this account
+        if (exists){  // means if any account in listOfAccounts is finding with same username with username && phoneNumber of Account that user created , so return false that means cannot add this account
             return null;
         }
 
-        eWalletSystem.getListOfAccounts().add(account);  // here we access from object getListOfAccounts that return listOfAccount , and uses it to added the new created account in the signup in the list after checking on this account is present before or what in the system by checking on username
+        accountRepository.save(account);  // here we access from object getListOfAccounts that return listOfAccount , and uses it to added the new created account in the signup in the list after checking on this account is present before or what in the system by checking on username
         return account;
     }
 
@@ -40,21 +45,15 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public Account getAccountByUserNameAndPassword(Account account) {
-        List<Account> accounts = eWalletSystem.getListOfAccounts();  // Retrieve all existing account from the system
-        Optional<Account> optionalAccount = accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName())).findAny(); // search for an account with matching username
-
-        if (optionalAccount.isPresent()){
-            return optionalAccount.get();
-        }else {
-            return null;
-        }
+        return accountRepository.findByUsernameAndPassword(account.getUserName(),
+                        account.getPassword())
+                .orElse(null);
     }
 
     public TransactionResult deposit(Account account, double amount){   // this function is return account in one case Or return null in two cases
         // make sure account exist in E-wallet system or not first
         // amount >=100
-        List<Account> accounts = eWalletSystem.getListOfAccounts();  // Retrieve all existing account from the system
-        Optional<Account> optionalAccount = accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName()) && acc.getPassword().equals(account.getPassword())).findAny(); // search for an account with matching username & password
+        Optional<Account> optionalAccount = accountRepository.findByUsernameAndPassword(account.getUserName(), account.getPassword()); // search for an account with matching username & password
 
         // Case 1: Account not found
         if(optionalAccount.isEmpty()){
@@ -74,19 +73,20 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public TransactionResult withDraw(Account account, double amount) {
-        List<Account> accounts = eWalletSystem.getListOfAccounts();  // Retrieve all existing account from the system
-        Optional<Account> optionalAccount = accounts.stream().filter(acc -> acc.getUserName().equals(account.getUserName()) && acc.getPassword().equals(account.getPassword())).findAny(); // search for an account with matching username & password
+        Optional<Account> optionalAccount = accountRepository.findByUsernameAndPassword(account.getUserName(), account.getPassword()); // search for an account with matching username & password
 
         // Case 1: Account not found (need to check the account is exist in system or not)
         if(optionalAccount.isEmpty()){
             return new TransactionResult(null,"❌ Account not found! ",false,"withDraw");
         }
+
+        Account accountWithDraw = optionalAccount.get();
+
         // Case 2: Amount less than minimum withdrawal (100 EGP) [After checking on account exist or not , we check on the amount]
         if (amount<100){
             return new TransactionResult(null,"❌ Withdrawal amount must be at least 100 EGP!",false,"withDraw");
         }
 
-        Account accountWithDraw = optionalAccount.get();
         // Case 3: Insufficient balance (checking on your balance is less than the amount that you want withDraw it)
         if (accountWithDraw.getBalance()<amount){
             return new TransactionResult(null,"❌ Insufficient balance!",false,"withDraw");
@@ -99,20 +99,37 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public TransactionResult changePassword(Account account, String oldPassword, String newPassword) {
-        if (newPassword.equals(account.getPassword())){
-            return new TransactionResult(null,"❌ cannot change password because new pass is same old pass",false,"change password");
-        } else {
-            account.setPassword(newPassword);
-            return new TransactionResult(account,"✅ change password successful!",true,"change password");
+        Optional<Account> optionalAccount =
+                accountRepository.findByUsernameAndPassword(
+                        account.getUserName(),
+                        account.getPassword());
+        if (optionalAccount.isEmpty()) {
+            return new TransactionResult(null,"❌ Account not found",false,"Change Password");
         }
+
+        Account acc = optionalAccount.get();
+
+        if (!acc.getPassword().equals(oldPassword)) {
+            return new TransactionResult(null,"❌ Old password incorrect",false,"Change Password");
+
+        } else if (newPassword.equals(oldPassword)){
+            return new TransactionResult(null,"❌ cannot change password because new pass is same old pass",false,"change password");
+
+        } else {
+            acc.setPassword(newPassword);
+            return new TransactionResult(account,"✅ password changed successfully",true,"change password");
+        }
+
     }
 
     @Override
     public TransactionResult transferMoney(Account senderAccount, String receiverName, double amount) {
-        List<Account> accounts = eWalletSystem.getListOfAccounts();
 
         // case 1 : check on the sender account is exist or not in the system
-        Optional<Account> optionalSender = accounts.stream().filter(acc->acc.getUserName().equals(senderAccount.getUserName()) && acc.getPassword().equals(senderAccount.getPassword())).findAny();
+        Optional<Account> optionalSender =
+                accountRepository.findByUsernameAndPassword(
+                        senderAccount.getUserName(),
+                        senderAccount.getPassword());
         if (optionalSender.isEmpty()){
             return new TransactionResult(null,"❌ Account not found! ",false,"TransferMoney");
         }
@@ -130,9 +147,10 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // case 4 : check if destination account is exist
-        Optional<Account> optionalReceiver = accounts.stream().filter(acc -> acc.getUserName().equals(receiverName)).findAny();
+        Optional<Account> optionalReceiver =
+                accountRepository.findByUsername(receiverName);
         if (optionalReceiver.isEmpty()){
-            return new TransactionResult(null,"❌ Destination account not found! ",false,"TransferMoney");
+            return new TransactionResult(null,"❌ Receiver account not found! ",false,"TransferMoney");
         }
 
         Account receiver = optionalReceiver.get();

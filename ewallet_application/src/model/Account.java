@@ -5,7 +5,7 @@ public class Account {
     private String userName;
     private String password;
     private String phoneNumber;
-    private float age;
+    private int age;
     private double balance;
 
     public Account() {
@@ -13,7 +13,7 @@ public class Account {
     }
 
     // this constructor used for in the creationAccount at signup
-    public Account(String userName, String password, String phoneNumber, float age) {
+    public Account(String userName, String password, String phoneNumber, int age) {
         this.userName = userName;
         this.password = password;
         this.phoneNumber = phoneNumber;
@@ -43,11 +43,11 @@ public class Account {
         this.password = password;
     }
 
-    public float getAge() {
+    public int getAge() {
         return age;
     }
 
-    public void setAge(float age) {
+    public void setAge(int age) {
         this.age = age;
     }
 
@@ -75,5 +75,20 @@ public class Account {
                 ", age=" + age +
                 ", balance=" + balance +
                 '}';
+    }
+
+    public void printAccountInfo(Account account){
+        System.out.printf("""
+            Username: %s
+            Password: %s
+            Phone: %s
+            Age: %d
+            Balance: %.2f
+            """,
+                account.getUserName(),
+                account.getPassword(),
+                account.getPhoneNumber(),
+                account.getAge(),
+                account.getBalance());
     }
 }

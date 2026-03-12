@@ -7,10 +7,7 @@ public class ValidationServiceImpl implements ValidationService {
 
     @Override
     public boolean validateUserNameFormat(String userName) {
-        if (userName.length()>3 && Character.isUpperCase(userName.charAt(0))){
-            return true;
-        }
-        return false;
+        return userName !=null && userName.length() > 3 && Character.isUpperCase(userName.charAt(0));
     }
 
     /**
@@ -21,18 +18,12 @@ public class ValidationServiceImpl implements ValidationService {
      */
     @Override
     public boolean validatePasswordFormat(String password) {
-        if (password.length() >8 && !password.matches("[a-zA-Z0-9]*")){
-            return true;
-        }
-        return false;
+        return password!=null && password.length() > 8 && !password.matches("[a-zA-Z0-9]*");
     }
 
     @Override
     public boolean validateAgeFormat(float age) {
-        if (age >=18){
-            return true;
-        }
-        return false;
+        return age >= 18;
     }
 
     /**
@@ -42,18 +33,12 @@ public class ValidationServiceImpl implements ValidationService {
      */
     @Override
     public boolean validatePhoneNumberFormat(String phoneNumber) {
-        if (phoneNumber.matches("01[0-2,5]{1}[0-9]{8}")){
-            return true;
-        }
-        return false;
+        return phoneNumber!=null && phoneNumber.matches("01[0125][0-9]{8}");
     }
 
     @Override
     public boolean validationPasswordMatch(Account account , String inputOldPassword) {
-        if (inputOldPassword.equals(account.getPassword())){
-            return true;
-        }
-        return false;
+        return inputOldPassword.equals(account.getPassword());
     }
 
 

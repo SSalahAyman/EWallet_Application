@@ -1,106 +1,135 @@
-package service.Impl;
+package app;
 import model.Account;
 import model.TransactionResult;
+import repository.AccountRepository;
 import service.AccountService;
-import service.ApplicationService;
+import service.Impl.AccountServiceImpl;
+import service.Impl.ValidationServiceImpl;
 import service.ValidationService;
 
+import java.util.InputMismatchException;
 import java.util.Objects;
 import java.util.Scanner;
 
 public class ApplicationServiceImpl implements ApplicationService {
     Scanner input= new Scanner(System.in);
-    private AccountService accountService = new AccountServiceImpl();
-    private ValidationService validationService = new ValidationServiceImpl();
+    private final AccountRepository accountRepository = new AccountRepository();
+    private final AccountService accountService = new AccountServiceImpl(accountRepository);
+    private final ValidationService validationService = new ValidationServiceImpl();
+
+    private int readInt() {
+        while (true) {
+            try {
+                return Integer.parseInt(input.next());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid number, please enter a valid integer.");
+            }
+        }
+    }
+
+    private double readDouble() {
+        while (true) {
+            try {
+                return Double.parseDouble(input.next());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid amount, please enter a valid number.");
+            }
+        }
+    }
 
     @Override
     public void startApplication() {
+        System.out.println("E-Wallet System Started");
+
         boolean isExit=true;
         int counter =0;
         while (isExit){
-            System.out.println("-----------------> hello sir :) <---------------------------");
-            System.out.println("1.login     2.signup      3.Exit");
-            System.out.println("please enter your choose...... ");
-            int choose=input.nextInt();
-            switch (choose){
-                case 1 :
-                    login();
+                System.out.println("-----------------> hello sir :) <---------------------------");
+                System.out.println("1.login     2.signup      3.Exit");
+                System.out.println("please enter your choose...... ");
+                int choose = readInt();
+                switch (choose){
+                    case 1 :
+                        login();
+                        break;
+                    case 2:
+                        signup();
+                        break;
+                    case 3 :
+                        System.out.println("have a nice day :).....");
+                        isExit=false;
+                        break;
+                    default:
+                        System.out.println("Invalid choose ");
+                        counter++;
+                }
+                if (counter==4){
+                    System.out.println("many times Invalid choose ,pls contact with admin :(.......");
                     break;
-                case 2:
-                    signup();
-                    break;
-                case 3 :
-                    System.out.println("have a nice day :).....");
-                    isExit=false;
-                    break;
-                default:
-                    System.out.println("Invalid choose ");
-                    counter++;
+                }
             }
-            if (counter==4){
-                System.out.println("many times Invalid choose ,pls contact with admin :(.......");
-                break;
-            }
-        }
+
     }
 
     private void signup(){
         String userName;
         String password;
-        float age;
+        int age;
         String phoneNumber;
         boolean validUserName;
         boolean validPassword;
         boolean validAge;
         boolean validPhoneNumber;
-        do {
-            System.out.println("please enter username : ");
-            userName=input.next();
-            validUserName=validationService.validateUserNameFormat(userName);
-            if(!validUserName){
-                System.out.println("Invalid userName format");
+
+            do {
+                System.out.println("please enter username : ");
+                userName=input.next();
+                validUserName=validationService.validateUserNameFormat(userName);
+                if(!validUserName){
+                    System.out.println("Invalid userName format");
+                }
+            }while(!validUserName);
+
+            do {
+                System.out.println("please enter password : ");
+                password=input.next();
+                validPassword=validationService.validatePasswordFormat(password);
+                if (!validPassword){
+                    System.out.println("Invalid password format");
+                }
+            }while(!validPassword);
+
+            do {
+                System.out.println("please enter age : ");
+                age = readInt();
+                validAge=validationService.validateAgeFormat(age);
+                if (!validAge){
+                    System.out.println("Invalid age format");
+                }
+            }while(!validAge);
+
+            do{
+                System.out.println("please enter phoneNumber : ");
+                phoneNumber = input.next();
+                validPhoneNumber=validationService.validatePhoneNumberFormat(phoneNumber);
+                if (!validPhoneNumber){
+                    System.out.println("Invalid phoneNumber format");
+                }
+            }while(!validPhoneNumber);
+
+            // here after validate on all input user info of the account ,create object of account and assign this info to the attributes of Account with set balance with zero
+            Account account=new Account(userName,password,phoneNumber,age);
+
+            Account accountCreated=accountService.createAccount(account);  // here we created account by storing the account with info of specific user to the wallet
+
+            if (Objects.nonNull(accountCreated)){
+                System.out.println("account created success :) ......");
+                showProfile(accountCreated);
+
+            } else{
+                System.out.println("username already exist on the system :( .......");
             }
-        }while(!validUserName);
 
-        do {
-            System.out.println("please enter password : ");
-            password=input.next();
-            validPassword=validationService.validatePasswordFormat(password);
-            if (!validPassword){
-                System.out.println("Invalid password format");
-            }
-        }while(!validPassword);
-
-        do {
-            System.out.println("please enter age : ");
-            age = input.nextFloat();
-            validAge=validationService.validateAgeFormat(age);
-            if (!validAge){
-                System.out.println("Invalid age format");
-            }
-        }while(!validAge);
-
-        do{
-            System.out.println("please enter phoneNumber : ");
-            phoneNumber = input.next();
-            validPhoneNumber=validationService.validatePhoneNumberFormat(phoneNumber);
-            if (!validPhoneNumber){
-                System.out.println("Invalid phoneNumber format");
-            }
-        }while(!validPhoneNumber);
-
-        // here after validate on all input user info of the account ,create object of account and assign this info to the attributes of Account with set balance with zero
-        Account account=new Account(userName,password,phoneNumber,age);
-
-        Account accountCreated=accountService.createAccount(account);  // here we created account by storing the account with info of specific user to the wallet
-
-        if (Objects.nonNull(accountCreated)){
-            System.out.println("account created success :) ......");
-            showProfile(accountCreated);
-
-        } else{
-            System.out.println("username already exist on the system :( .......");
-        }
     }
 
     private void login(){
@@ -114,107 +143,106 @@ public class ApplicationServiceImpl implements ApplicationService {
 
             Account account=new Account(userName,password);
 
-            Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
+                Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
 
-            if (Objects.nonNull(accountLogin)){
-                System.out.println("login success :) ......");
-                isLogin=true;
-                showProfile(accountLogin);
-            } else{
-                System.out.println("Invalid userName or password :( .......");
-                validAttempts++;
-            }
+                if (Objects.nonNull(accountLogin)){
+                    System.out.println("✅ login success :) ......");
+                    isLogin=true;
+                    showProfile(accountLogin);
+                } else{
+                    System.out.println("❌ Invalid userName or password :( .......");
+                    validAttempts++;
+                }
 
-            if(validAttempts==4){
-                System.out.println("many times Invalid login ,pls contact with admin :(.......");
-                break;
-            }
+                if(validAttempts==4){
+                    System.out.println("⚠️ many times Invalid login ,pls contact with admin :(.......");
+                    break;
+                }
+
         }
 
     }
 
     private void showProfile(Account account){
+        int invalidCounter=0;
+        final int maxAttempts=3;
         while(true){
             System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password      7.Logout");
             System.out.println("please enter your choose");
-            int choose= input.nextInt();
-            int counter =0;
+            int choose= readInt();
             boolean isExit= false;
             boolean invalidChoose= false;
-            switch (choose){
-                case 1:
-                    deposit(account);
-                    break;
-                case 2:
-                    withDraw(account);
-                    break;
-                case 3:
-                    transferMoney(account);
-                    break;
-                case 4:
-                    System.out.println("Your balance is : "+ account.getBalance());
-                    break;
-                case 5:
-                    ShowAccountDetails(account);
-                    break;
-                case 6:
-                    changePassword(account);
-                    break;
-                case 7:
-                    System.out.println("logout success have a nice day .....");
-                    isExit=true;
-                    break;
-                default:
-                    System.out.println("Invalid choose..... ");
-                    counter++;
-                    invalidChoose=true;
-            }
 
-            if (counter==4){   // ❗❗ not working
-                System.out.println("many times Invalid choose ,pls contact with admin :(.......");
-                break;
-            }
+                switch (choose){
+                    case 1:
+                        deposit(account);
+                        break;
+                    case 2:
+                        withdraw(account);
+                        break;
+                    case 3:
+                        transferMoney(account);
+                        break;
+                    case 4:
+                        System.out.println("Your balance is : "+ account.getBalance());
+                        break;
+                    case 5:
+                        ShowAccountDetails(account);
+                        break;
+                    case 6:
+                        changePassword(account);
+                        break;
+                    case 7:
+                        System.out.println("logout success have a nice day .....");
+                        isExit=true;
+                        break;
+                    default:
+                        System.out.println("Invalid choose..... ");
+                        invalidCounter++;
+                        invalidChoose=true;
+                }
 
-            // means if user enter logout don't repeat the choices again of services of account
-            if (isExit){
-                break;
-            }
+                if (invalidCounter >= maxAttempts){
+                    System.out.println("many times Invalid choose ,pls contact with admin :(.......");
+                    break;
+                }
 
-            // means if user enter any invalid choose , skip the current statement of loop "that don't show him the part of asking Are you need to do new service" and go directly to new iteration
-            if (invalidChoose){
-                continue;
-            }
+                // means if user enter logout don't repeat the choices again of services of account
+                if (isExit){
+                    break;
+                }
 
-            // means if user finishes deposit , before repeating show the services again, ask him first if you want to do anyThing or not , so if false , break that exit from loop
-            System.out.println("Are you need to do new service on your account ......:)");
-            System.out.println("1.yes          2.no");
-            int service=input.nextInt();
-            if(service == 2){
-                break;
-            }
+                // means if user enter any invalid choose , skip the current statement of loop "that don't show him the part of asking Are you need to do new service" and go directly to next iteration
+                if (invalidChoose){
+                    continue;
+                }
+
+                // means if user finishes deposit , before repeating show the services again, ask him first if you want to do anyThing or not , so if false , break that exit from loop
+                System.out.println("Are you need to do new service on your account ......:)");
+                System.out.println("1.yes          2.no");
+                int service=readInt();
+                if(service == 2){
+                    break;
+                }
+
         }
 
     }
 
 
 
-    private void withDraw(Account account) {
-        System.out.println("--------> your details is <---------------");
-        System.out.println("Username: "+account.getUserName());
-        System.out.println("Password: "+account.getPassword());
-        System.out.println("PhoneNumber: "+account.getPhoneNumber());
-        System.out.println("Age: "+account.getAge());
-        System.out.println("Balance: "+account.getBalance());
+    private void withdraw(Account account) {
+        account.printAccountInfo(account);
 
         System.out.println("--------------> please enter amount to withdraw.....");
-        double amount=input.nextDouble();
+        double amount = readDouble();
         TransactionResult withDrawResult = accountService.withDraw(account,amount);
 
         if(withDrawResult.isSuccess()){
             System.out.println(withDrawResult.getMessage());
             System.out.println("current & updated balance is : " + withDrawResult.getAccount().getBalance());
         } else{
-            System.out.println("withDraw failed : "+withDrawResult.getMessage());  // ❗❗❗❗ here I need to specific this failed to the three cases of failed withdraw with (account not exist or amount is not greater than 100 or amount greater than balance)
+            System.out.println("withDraw failed : "+withDrawResult.getMessage());
         }
 
         // Additional helpful tips based on failure case
@@ -228,15 +256,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     private void deposit (Account account){
-        System.out.println("--------> your details is <---------------");
-        System.out.println("Username: "+account.getUserName());
-        System.out.println("Password: "+account.getPassword());
-        System.out.println("PhoneNumber: "+account.getPhoneNumber());
-        System.out.println("Age: "+account.getAge());
-        System.out.println("Balance: "+account.getBalance());
+        account.printAccountInfo(account);
 
         System.out.println("--------------> please enter amount to deposit it.....");
-        double amount=input.nextDouble();
+        double amount = readDouble();
 
         TransactionResult depositResult = accountService.deposit(account,amount);  // pass the account from signup or login and the amount that you want to deposit it to this account , and this function check on account is exist or not & amount
 
@@ -244,7 +267,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             System.out.println(depositResult.getMessage());
             System.out.println("current & updated balance is : " + depositResult.getAccount().getBalance());
         } else{
-            System.out.println("Deposit failed : "+depositResult.getMessage());  // ❗❗❗❗ here I need to specific this failed to the two cases of failed deposit with (account not exist or amount is not greater than 100)
+            System.out.println("Deposit failed : "+depositResult.getMessage());
         }
 
         // Additional helpful tips based on failure case
@@ -262,7 +285,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         int oldPasswordAttempts=0;
         int newPasswordAttempts=0;
         final int maxAttempts=3;
-        boolean passwordFormat = false;
 
         // Step 1: Verify old password (max 3 attempts)
         while (oldPasswordAttempts < maxAttempts) {
@@ -341,7 +363,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         System.out.println("1. Yes (show actual password)");
         System.out.println("2. No (show masked password)");
         System.out.print("Your choice: ");
-        int choice = input.nextInt();
+        int choice = readInt();
 
         if (choice == 1) {
             System.out.println("Password      : " + updatedAccount.getPassword() + " (visible)");
@@ -372,7 +394,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         // Get amount to transfer
         System.out.print("Enter amount to transfer : ");
-        double amount = input.nextDouble();
+        double amount = readDouble();
 
         // Confirm transfer
         System.out.println("Transfer Summary :");
@@ -380,21 +402,23 @@ public class ApplicationServiceImpl implements ApplicationService {
         System.out.println("To: "+destinationUserName);
         System.out.println("Amount: "+amount);
         System.out.print("Confirm transfer?  (1.  Yes / 2.  No) : ");
-        int confirm = input.nextInt();
+        int confirm = readInt();
 
         if(confirm !=1){
             System.out.println("❌ Transfer cancelled.");
             return;
         }
 
+        System.out.println("\n══════════════════════════════════════");
         // Perform transfer
         TransactionResult transferResult = accountService.transferMoney(account,destinationUserName,amount);
         if (transferResult.isSuccess()){
-            System.out.println(transferResult.getMessage() + " "+ transferResult.getAccount().getBalance());
+            System.out.println(transferResult.getMessage() + ": "+ amount);
+            System.out.println("Your new balance : "+transferResult.getAccount().getBalance());
         } else {
             System.out.println("Failed Transferred : "+transferResult.getMessage());
         }
-        System.out.println("\n══════════════════════════════════════");
+        System.out.println("══════════════════════════════════════\n");
 
 
 

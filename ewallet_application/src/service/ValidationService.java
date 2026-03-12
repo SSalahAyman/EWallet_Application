@@ -13,4 +13,5 @@ public interface ValidationService {
     boolean validatePhoneNumberFormat(String phoneNumber);
 
     boolean validationPasswordMatch(Account account,String inputOldPassword);
+
 }
