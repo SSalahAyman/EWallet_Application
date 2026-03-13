@@ -1,13 +1,17 @@
 package app;
 import model.Account;
+import model.Transaction;
 import model.TransactionResult;
 import repository.AccountRepository;
+import repository.TransactionRepository;
 import service.AccountService;
 import service.Impl.AccountServiceImpl;
+import service.Impl.TransactionServiceImpl;
 import service.Impl.ValidationServiceImpl;
+import service.TransactionService;
 import service.ValidationService;
 
-import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -15,6 +19,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     Scanner input= new Scanner(System.in);
     private final AccountRepository accountRepository = new AccountRepository();
     private final AccountService accountService = new AccountServiceImpl(accountRepository);
+    private final TransactionRepository transactionRepository = new TransactionRepository();
+    private final TransactionService transactionService = new TransactionServiceImpl(transactionRepository);
     private final ValidationService validationService = new ValidationServiceImpl();
 
     private int readInt() {
@@ -167,7 +173,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         int invalidCounter=0;
         final int maxAttempts=3;
         while(true){
-            System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password      7.Logout");
+            System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password      7.Logout     8. Show Transaction History");
             System.out.println("please enter your choose");
             int choose= readInt();
             boolean isExit= false;
@@ -195,6 +201,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                     case 7:
                         System.out.println("logout success have a nice day .....");
                         isExit=true;
+                        break;
+                    case 8:
+                        showTransactionHistory(account);
                         break;
                     default:
                         System.out.println("Invalid choose..... ");
@@ -230,7 +239,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
 
-
     private void withdraw(Account account) {
         account.printAccountInfo(account);
 
@@ -241,6 +249,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(withDrawResult.isSuccess()){
             System.out.println(withDrawResult.getMessage());
             System.out.println("current & updated balance is : " + withDrawResult.getAccount().getBalance());
+            transactionService.recordTransaction(
+                    new Transaction(account.getUserName(),"WITHDRAW", amount, "SUCCESS", "Withdraw successful")
+            );
         } else{
             System.out.println("withDraw failed : "+withDrawResult.getMessage());
         }
@@ -266,6 +277,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(depositResult.isSuccess()){
             System.out.println(depositResult.getMessage());
             System.out.println("current & updated balance is : " + depositResult.getAccount().getBalance());
+            transactionService.recordTransaction(
+                    new Transaction(
+                            account.getUserName(),"Deposit",amount,"Success","Deposit Successful")
+            );
         } else{
             System.out.println("Deposit failed : "+depositResult.getMessage());
         }
@@ -415,6 +430,16 @@ public class ApplicationServiceImpl implements ApplicationService {
         if (transferResult.isSuccess()){
             System.out.println(transferResult.getMessage() + ": "+ amount);
             System.out.println("Your new balance : "+transferResult.getAccount().getBalance());
+            transactionService.recordTransaction(
+                    new Transaction(
+                            transferResult.getAccount().getUserName(),
+                            "TRANSFER",
+                            amount,
+                            "SUCCESS",
+                            "Transfer to " + destinationUserName
+                    )
+            );
+
         } else {
             System.out.println("Failed Transferred : "+transferResult.getMessage());
         }
@@ -424,5 +449,32 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    private void showTransactionHistory(Account account) {
+        List<Transaction> transactions =
+                transactionService.getUserTransactions(account.getUserName());
+
+        if(transactions.isEmpty()){
+            System.out.println("No transactions found.");
+            return;
+        }
+
+        System.out.println("========== Transaction History ==========");
+        transactions.stream()
+                .forEach(t -> {
+                    System.out.printf("""
+                                    type: %s
+                                    Amount: %s
+                                    Status: %s
+                                    Description: %s
+                                    Date: %s
+                                    """,
+                            t.getType(),
+                            t.getAmount(),
+                            t.getStatus(),
+                            t.getDescription(),
+                            t.getDate());
+                    System.out.println("-----------------------------------");
+                });
+    }
 
 }

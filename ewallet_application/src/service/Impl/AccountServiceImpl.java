@@ -69,6 +69,7 @@ public class AccountServiceImpl implements AccountService {
         Account accountDeposit = optionalAccount.get();
         accountDeposit.setBalance(accountDeposit.getBalance() + amount);
         return new TransactionResult(accountDeposit,"✅ Deposit successful!",true,"Deposit");
+
     }
 
     @Override
