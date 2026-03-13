@@ -8,6 +8,7 @@ public class Account {
     private int age;
     private double balance;
     private boolean active = true;
+    private boolean isAdmin= false;
 
     public Account() {
 
@@ -74,6 +75,14 @@ public class Account {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 
     @Override

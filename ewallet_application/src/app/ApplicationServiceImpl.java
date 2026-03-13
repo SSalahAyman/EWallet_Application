@@ -43,8 +43,18 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    private void createDefaultAdmin(){
+        Account admin = new Account("IAM","IAM123","01000000000",30);
+        admin.setAdmin(true);
+
+        accountRepository.save(admin);
+    }
+
     @Override
     public void startApplication() {
+
+        createDefaultAdmin();
+
         System.out.println("E-Wallet System Started");
 
         boolean isExit=true;
@@ -160,7 +170,11 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                 System.out.println("✅ login success :) ......");
                 isLogin = true;
-                showProfile(accountLogin);
+                if (accountLogin.isAdmin()){
+                    showAdminPanel(accountLogin);
+                }else{
+                    showProfile(accountLogin);
+                }
 
             } else {
                 System.out.println("❌ Invalid userName or password :( .......");
@@ -174,6 +188,57 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         }
 
+    }
+
+    private void showAdminPanel(Account admin) {
+        while(true){
+            System.out.println("========= ADMIN PANEL =========");
+            System.out.println("1. View All Accounts");
+            System.out.println("2. Logout");
+
+            int choose = readInt();
+
+            switch(choose){
+                case 1 :
+                    showAllAccounts();
+                    break;
+                case 2 :
+                    System.out.println("Admin logout...");
+                    return;
+                default :
+                    System.out.println("invalid option");
+
+            }
+        }
+    }
+
+    private void showAllAccounts() {
+
+        List<Account> accounts = accountRepository.findAll();
+
+        if(accounts.isEmpty()){
+            System.out.println("No accounts found");
+            return;
+        }
+
+        System.out.println("========== ALL ACCOUNTS ==========");
+
+        accounts.stream()
+                .forEach(acc -> {
+                    System.out.printf("""
+                                    Username: %s
+                                    Phone: %s
+                                    Balance: %.2f
+                                    Active: %b
+                                    Admin: %b
+                                    """,
+                            acc.getUserName(),
+                            acc.getPhoneNumber(),
+                            acc.getBalance(),
+                            acc.isActive(),
+                            acc.isAdmin());
+                    System.out.println("-----------------------------------");
+                });
     }
 
     private void showProfile(Account account){
