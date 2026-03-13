@@ -5,9 +5,6 @@ import model.EWalletSystem;
 import model.TransactionResult;
 import repository.AccountRepository;
 import service.AccountService;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class AccountServiceImpl implements AccountService {
@@ -65,8 +62,13 @@ public class AccountServiceImpl implements AccountService {
             return new TransactionResult(null,"❌ Deposit amount must be at least 100 EGP.",false,"Deposit");
         }
 
-        // Success Case : if your reach for this check so that means the account is exist in system & amount is ready to deposit it because it greater than 100
         Account accountDeposit = optionalAccount.get();
+        // Case 3: Account is inactive
+        if(!accountDeposit.isActive()){
+            return new TransactionResult(null,"❌ Account is inactive!",false,"Deposit");
+        }
+
+        // Success Case : if your reach for this check so that means the account is exist in system & isActivated & amount is ready to deposit it because it greater than 100
         accountDeposit.setBalance(accountDeposit.getBalance() + amount);
         return new TransactionResult(accountDeposit,"✅ Deposit successful!",true,"Deposit");
 
@@ -78,24 +80,28 @@ public class AccountServiceImpl implements AccountService {
 
         // Case 1: Account not found (need to check the account is exist in system or not)
         if(optionalAccount.isEmpty()){
-            return new TransactionResult(null,"❌ Account not found! ",false,"withDraw");
+            return new TransactionResult(null,"❌ Account not found! ",false,"withdraw");
         }
-
-        Account accountWithDraw = optionalAccount.get();
 
         // Case 2: Amount less than minimum withdrawal (100 EGP) [After checking on account exist or not , we check on the amount]
         if (amount<100){
-            return new TransactionResult(null,"❌ Withdrawal amount must be at least 100 EGP!",false,"withDraw");
+            return new TransactionResult(null,"❌ Withdrawal amount must be at least 100 EGP!",false,"withdraw");
         }
 
+        Account accountWithDraw = optionalAccount.get();
         // Case 3: Insufficient balance (checking on your balance is less than the amount that you want withDraw it)
         if (accountWithDraw.getBalance()<amount){
-            return new TransactionResult(null,"❌ Insufficient balance!",false,"withDraw");
+            return new TransactionResult(null,"❌ Insufficient balance!",false,"withdraw");
+        }
+
+        // Case 4: Account is inactive
+        if(!accountWithDraw.isActive()){
+            return new TransactionResult(null,"❌ Account is inactive!",false,"withdraw");
         }
 
         // Success Case : if your reach for this check so that means the account is exist in system & amount that user want to withDraw is ready to withDraw it because it greater than 100 & the amount that you want to withDraw it less than balance
         accountWithDraw.setBalance(accountWithDraw.getBalance() - amount);
-        return new TransactionResult(accountWithDraw,"✅ withDraw successful!",true,"withDraw");
+        return new TransactionResult(accountWithDraw,"✅ withDraw successful!",true,"withdraw");
     }
 
     @Override
@@ -109,6 +115,9 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Account acc = optionalAccount.get();
+        if(!acc.isActive()){
+            return new TransactionResult(null,"❌ Account is inactive!",false,"ChangePassword");
+        }
 
         if (!acc.getPassword().equals(oldPassword)) {
             return new TransactionResult(null,"❌ Old password incorrect",false,"Change Password");
@@ -147,7 +156,12 @@ public class AccountServiceImpl implements AccountService {
             return new TransactionResult(null,"❌ Cannot transfer money to yourself! ",false,"TransferMoney");
         }
 
-        // case 4 : check if destination account is exist
+        // Case 4: Your Account is inactive
+        if(!sender.isActive()){
+            return new TransactionResult(null,"❌ Your Account is inactive!",false,"TransferMoney");
+        }
+
+        // case 5 : check if destination account is exist
         Optional<Account> optionalReceiver =
                 accountRepository.findByUsername(receiverName);
         if (optionalReceiver.isEmpty()){
@@ -156,12 +170,12 @@ public class AccountServiceImpl implements AccountService {
 
         Account receiver = optionalReceiver.get();
 
-        // case 5 : check amount > 0
+        // case 6 : check amount > 0
         if (amount <= 0){
             return new TransactionResult(null,"❌ Transfer amount must be greater than 0 EGP! ",false,"TransferMoney");
         }
 
-        // case 6 : Check sufficient balance
+        // case 7 : Check sufficient balance
         if (amount>sender.getBalance()){
             return new TransactionResult(null , "❌ Insufficient balance in your account ",false,"TransferMoney");
         }
@@ -172,5 +186,40 @@ public class AccountServiceImpl implements AccountService {
         return new TransactionResult(sender,"✅ Successfully transferred ",true,"TransferMoney");
     }
 
+    @Override
+    public TransactionResult deleteAccount(Account account) {
+        Optional<Account> optionalAccount =
+                accountRepository.findByUsernameAndPassword(
+                        account.getUserName(),
+                        account.getPassword());
 
+        if (optionalAccount.isEmpty()){
+            return new TransactionResult(null,"❌ Account not found",false,"Delete");
+        }
+
+        Account acc= optionalAccount.get();
+        accountRepository.delete(acc);
+        return new TransactionResult(null,"✅ Account deleted successfully",true,"Delete");
+    }
+
+    @Override
+    public TransactionResult deactivateAccount(Account account) {
+        Optional<Account> optionalAccount =
+                accountRepository.findByUsernameAndPassword(
+                        account.getUserName(),
+                        account.getPassword());
+
+        if(optionalAccount.isEmpty()){
+            return new TransactionResult(null,"❌ Account not found",false,"Deactivate");
+        }
+        Account acc = optionalAccount.get();
+
+        if(!acc.isActive()){
+            return new TransactionResult(null,"❌ Account already inactive",false,"Deactivate");
+        }
+
+        acc.setActive(false);
+        return new TransactionResult(acc,"✅ Account deactivated successfully",true,"Deactivate");
+
+    }
 }

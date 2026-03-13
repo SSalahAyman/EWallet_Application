@@ -7,6 +7,7 @@ public class Account {
     private String phoneNumber;
     private int age;
     private double balance;
+    private boolean active = true;
 
     public Account() {
 
@@ -65,6 +66,14 @@ public class Account {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     @Override

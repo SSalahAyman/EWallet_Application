@@ -17,4 +17,8 @@ public interface AccountService {
 
     TransactionResult transferMoney(Account senderAccount,String receiverName, double amount);
 
+    TransactionResult deleteAccount(Account account);
+
+    TransactionResult deactivateAccount(Account account);
+
 }

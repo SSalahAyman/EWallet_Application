@@ -36,4 +36,8 @@ public class AccountRepository {
     public List<Account> findAll() {
         return accounts;
     }
+
+    public void delete(Account account){
+        accounts.remove(account);
+    }
 }

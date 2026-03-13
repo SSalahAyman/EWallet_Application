@@ -151,14 +151,21 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                 Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
 
-                if (Objects.nonNull(accountLogin)){
-                    System.out.println("✅ login success :) ......");
-                    isLogin=true;
-                    showProfile(accountLogin);
-                } else{
-                    System.out.println("❌ Invalid userName or password :( .......");
-                    validAttempts++;
+            if (accountLogin != null) {
+
+                if (!accountLogin.isActive()) {
+                    System.out.println("❌ Your account is inactive. Please contact support.");
+                    return;   // means Exit from login service when accountLogin object not active so don't process the remain of login service
                 }
+
+                System.out.println("✅ login success :) ......");
+                isLogin = true;
+                showProfile(accountLogin);
+
+            } else {
+                System.out.println("❌ Invalid userName or password :( .......");
+                validAttempts++;
+            }
 
                 if(validAttempts==4){
                     System.out.println("⚠️ many times Invalid login ,pls contact with admin :(.......");
@@ -173,7 +180,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         int invalidCounter=0;
         final int maxAttempts=3;
         while(true){
-            System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password      7.Logout     8. Show Transaction History");
+            System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password       7. Show Transaction History      8.Deactivate Account      9.Delete Account       10.Logout");
             System.out.println("please enter your choose");
             int choose= readInt();
             boolean isExit= false;
@@ -199,12 +206,19 @@ public class ApplicationServiceImpl implements ApplicationService {
                         changePassword(account);
                         break;
                     case 7:
+                        showTransactionHistory(account);
+                        break;
+                    case 8:
+                        deactivateAccount(account);
+                        break;
+                    case 9:
+                        deleteAccount(account);
+                        return;
+                    case 10:
                         System.out.println("logout success have a nice day .....");
                         isExit=true;
                         break;
-                    case 8:
-                        showTransactionHistory(account);
-                        break;
+
                     default:
                         System.out.println("Invalid choose..... ");
                         invalidCounter++;
@@ -477,4 +491,29 @@ public class ApplicationServiceImpl implements ApplicationService {
                 });
     }
 
-}
+    private void deactivateAccount(Account account) {
+        TransactionResult result = accountService.deactivateAccount(account);
+
+        System.out.println(result.getMessage());
+
+        if(result.isSuccess()){
+            System.out.println("You have been logged out.");
+        }
+
+    }
+
+    private void deleteAccount(Account account) {
+        System.out.println("⚠️ Are you sure you want to delete your account?");
+        System.out.println("1.Yes    2.No");
+
+        int confirm = readInt();
+        if(confirm != 1){
+            System.out.println("Delete cancelled.");
+            return;
+        }
+
+        TransactionResult result = accountService.deleteAccount(account);
+        System.out.println(result.getMessage());
+        }
+
+    }

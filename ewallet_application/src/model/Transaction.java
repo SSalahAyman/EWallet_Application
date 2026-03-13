@@ -45,18 +45,4 @@ public class Transaction {
         return date;
     }
 
-    public void printTransaction(Transaction t){
-        System.out.printf("""
-                        type: %s
-                        Amount: %s
-                        Status: %s
-                        Description: %s
-                        Date: %s
-                        """,
-                t.getType(),
-                t.getAmount(),
-                t.getStatus(),
-                t.getDescription(),
-                t.getDate());
-    }
 }
