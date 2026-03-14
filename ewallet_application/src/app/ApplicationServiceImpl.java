@@ -16,13 +16,23 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class ApplicationServiceImpl implements ApplicationService {
+    // Scanner used to read input from user (console)
     Scanner input= new Scanner(System.in);
+    // Repository layer responsible for storing accounts in memory
     private final AccountRepository accountRepository = new AccountRepository();
+    // Service layer that contains business logic related to accounts
     private final AccountService accountService = new AccountServiceImpl(accountRepository);
+    // Repository responsible for storing transactions
     private final TransactionRepository transactionRepository = new TransactionRepository();
+    // Service responsible for transaction operations
     private final TransactionService transactionService = new TransactionServiceImpl(transactionRepository);
+    // Service responsible for validating user inputs
     private final ValidationService validationService = new ValidationServiceImpl();
 
+    /**
+     * Safely read integer input from the user.
+     * If user enters invalid value it will keep asking.
+     */
     private int readInt() {
         while (true) {
             try {
@@ -33,6 +43,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    /**
+     * Safely read double input from the user.
+     */
     private double readDouble() {
         while (true) {
             try {
@@ -43,35 +56,43 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    /**
+     * Create a default admin account when the application starts.
+     */
     private void createDefaultAdmin(){
-        Account admin = new Account("IAM","IAM123","01000000000",30);
-        admin.setAdmin(true);
+        Account admin = new Account("IAM","IAM123","01000000000",30);   // create admin account
+        admin.setAdmin(true);   // set this account as admin
 
-        accountRepository.save(admin);
+        accountRepository.save(admin);   // save admin inside repository
     }
 
+    /**
+     * This method is the ENTRY POINT of the application.
+     * It shows main menu (login / signup / exit)
+     */
     @Override
     public void startApplication() {
 
-        createDefaultAdmin();
+        createDefaultAdmin();  // create admin when system starts
 
         System.out.println("E-Wallet System Started");
 
         boolean isExit=true;
         int counter =0;
+        // Main application loop
         while (isExit){
                 System.out.println("-----------------> hello sir :) <---------------------------");
                 System.out.println("1.login     2.signup      3.Exit");
                 System.out.println("please enter your choose...... ");
                 int choose = readInt();
                 switch (choose){
-                    case 1 :
+                    case 1 :  // Login to existing account
                         login();
                         break;
-                    case 2:
+                    case 2:  // Create new account
                         signup();
                         break;
-                    case 3 :
+                    case 3 :  // Exit application
                         System.out.println("have a nice day :).....");
                         isExit=false;
                         break;
@@ -79,6 +100,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                         System.out.println("Invalid choose ");
                         counter++;
                 }
+            // if user entered wrong option 4 times exit
                 if (counter==4){
                     System.out.println("many times Invalid choose ,pls contact with admin :(.......");
                     break;
@@ -87,6 +109,10 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    /**
+     * Signup process
+     * Responsible for creating new account
+     */
     private void signup(){
         String userName;
         String password;
@@ -97,6 +123,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         boolean validAge;
         boolean validPhoneNumber;
 
+            // Validate username format
             do {
                 System.out.println("please enter username : ");
                 userName=input.next();
@@ -106,6 +133,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 }
             }while(!validUserName);
 
+            // Validate password format
             do {
                 System.out.println("please enter password : ");
                 password=input.next();
@@ -115,6 +143,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 }
             }while(!validPassword);
 
+            // Validate age
             do {
                 System.out.println("please enter age : ");
                 age = readInt();
@@ -124,6 +153,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 }
             }while(!validAge);
 
+            // Validate phone number format
             do{
                 System.out.println("please enter phoneNumber : ");
                 phoneNumber = input.next();
@@ -136,11 +166,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             // here after validate on all input user info of the account ,create object of account and assign this info to the attributes of Account with set balance with zero
             Account account=new Account(userName,password,phoneNumber,age);
 
-            Account accountCreated=accountService.createAccount(account);  // here we created account by storing the account with info of specific user to the wallet
+            // Call service layer to create account by storing the account with info of specific user to the wallet
+            Account accountCreated=accountService.createAccount(account);
 
+            // Check if account created successfully
             if (Objects.nonNull(accountCreated)){
                 System.out.println("account created success :) ......");
-                showProfile(accountCreated);
+                showProfile(accountCreated);   // Show account profile after signup
 
             } else{
                 System.out.println("username or phone number already exist on the system :( .......");
@@ -148,21 +180,29 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    /**
+     * Login process
+     * Used to authenticate user
+     */
     private void login(){
         boolean isLogin=false;
         int validAttempts=0;
+
+        // Loop until login success or attempts finished
         while(!isLogin){
             System.out.println("please enter username : ");
             String userName=input.next();
             System.out.println("please enter password : ");
             String password=input.next();
 
+            // create temporary account object
             Account account=new Account(userName,password);
 
-                Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
+            // check account existence
+            Account accountLogin =accountService.getAccountByUserNameAndPassword(account);
 
             if (accountLogin != null) {
-
+                // check if account active
                 if (!accountLogin.isActive()) {
                     System.out.println("❌ Your account is inactive. Please contact support.");
                     return;   // means Exit from login service when accountLogin object not active so don't process the remain of login service
@@ -170,9 +210,12 @@ public class ApplicationServiceImpl implements ApplicationService {
 
                 System.out.println("✅ login success :) ......");
                 isLogin = true;
+
+                // if admin open admin panel
                 if (accountLogin.isAdmin()){
                     showAdminPanel(accountLogin);
                 }else{
+                // otherwise open user profile
                     showProfile(accountLogin);
                 }
 
@@ -181,6 +224,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 validAttempts++;
             }
 
+            // if login attempts exceeded
                 if(validAttempts==4){
                     System.out.println("⚠️ many times Invalid login ,pls contact with admin :(.......");
                     break;
@@ -190,6 +234,10 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    /**
+     * Admin panel interface
+     * Allows admin to manage accounts
+     */
     private void showAdminPanel(Account admin) {
         while(true){
             System.out.println("========= ADMIN PANEL =========");
@@ -199,7 +247,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             int choose = readInt();
 
             switch(choose){
-                case 1 :
+                case 1 :   // display all system accounts
                     showAllAccounts();
                     break;
                 case 2 :
@@ -212,6 +260,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    /**
+     * Display all accounts stored in system
+     */
     private void showAllAccounts() {
 
         List<Account> accounts = accountRepository.findAll();
@@ -223,6 +274,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         System.out.println("========== ALL ACCOUNTS ==========");
 
+        // print each account details
         accounts.stream()
                 .forEach(acc -> {
                     System.out.printf("""
