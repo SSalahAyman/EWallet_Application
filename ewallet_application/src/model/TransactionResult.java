@@ -1,15 +1,22 @@
 package model;
 
+/**
+ * This class represents the result of any transaction operation
+ * such as Deposit, Withdraw, Transfer, Change Password, etc.
+ */
 public class TransactionResult {
-    private Account account;
-    private String message;
-    private boolean success;
-    private String transactionType;   // "Deposit" , "WithDraw" , "Transfer"
+    private Account account;  // The account involved in the transaction
+    private String message;   // Message explaining the result of operation
+    private boolean success;  // Indicates whether operation succeeded or failed
+    private String transactionType;   // Type of transaction (Deposit, Withdraw, Transfer ...)
 
     public TransactionResult() {
 
     }
 
+    /**
+     * Constructor used to create transaction result object
+     */
     public TransactionResult(Account account, String message, boolean success, String transactionType){
         this.account=account;
         this.message=message;

@@ -293,55 +293,68 @@ public class ApplicationServiceImpl implements ApplicationService {
                 });
     }
 
+    /**
+     * This method shows the main profile menu for the logged-in user.
+     * From here the user can perform all wallet operations.
+     */
     private void showProfile(Account account){
+        // Counter to track how many invalid menu choices the user entered
         int invalidCounter=0;
+        // Maximum number of invalid attempts allowed
         final int maxAttempts=3;
+
+        // Infinite loop until user logout or exit
         while(true){
+            // Display all available account services
             System.out.println("1.Deposit     2.Withdraw      3.Transfer       4.Show Balance      5.Show Account Details     6.Change Password       7. Show Transaction History      8.Deactivate Account      9.Delete Account       10.Logout");
             System.out.println("please enter your choose");
+            // Read user's menu choice safely
             int choose= readInt();
+            // Flag to control logout
             boolean isExit= false;
+            // Flag to detect invalid option
             boolean invalidChoose= false;
 
                 switch (choose){
-                    case 1:
+                    case 1:  // Deposit money
                         deposit(account);
                         break;
-                    case 2:
+                    case 2:  // Withdraw money
                         withdraw(account);
                         break;
-                    case 3:
+                    case 3:  // Transfer money to another account
                         transferMoney(account);
                         break;
-                    case 4:
+                    case 4:  // Show current balance
                         System.out.println("Your balance is : "+ account.getBalance());
                         break;
-                    case 5:
+                    case 5:  // Display full account details
                         ShowAccountDetails(account);
                         break;
-                    case 6:
+                    case 6:  // Change account password
                         changePassword(account);
                         break;
-                    case 7:
+                    case 7:  // Display user's transaction history
                         showTransactionHistory(account);
                         break;
-                    case 8:
+                    case 8:   // Deactivate account
                         deactivateAccount(account);
                         break;
-                    case 9:
+                    case 9:   // Delete account permanently
                         deleteAccount(account);
                         return;
-                    case 10:
+                    case 10:   // Logout from account
                         System.out.println("logout success have a nice day .....");
                         isExit=true;
                         break;
 
-                    default:
+                    default:  // Invalid option entered
                         System.out.println("Invalid choose..... ");
                         invalidCounter++;
                         invalidChoose=true;
                 }
 
+                // If user exceeded max invalid attempts
                 if (invalidCounter >= maxAttempts){
                     System.out.println("many times Invalid choose ,pls contact with admin :(.......");
                     break;
@@ -361,7 +374,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 System.out.println("Are you need to do new service on your account ......:)");
                 System.out.println("1.yes          2.no");
                 int service=readInt();
-                if(service == 2){
+                if(service == 2){   // If user chooses no → exit loop
                     break;
                 }
 
@@ -369,17 +382,24 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
-
+    /**
+     * Withdraw money from the user's account
+     */
     private void withdraw(Account account) {
+        // Print account information before withdrawal
         account.printAccountInfo(account);
 
+        // Ask user for withdrawal amount
         System.out.println("--------------> please enter amount to withdraw.....");
         double amount = readDouble();
+        // Call service layer to process withdrawal
         TransactionResult withDrawResult = accountService.withDraw(account,amount);
 
+        // If withdrawal successful
         if(withDrawResult.isSuccess()){
             System.out.println(withDrawResult.getMessage());
             System.out.println("current & updated balance is : " + withDrawResult.getAccount().getBalance());
+            // Record transaction in transaction history
             transactionService.recordTransaction(
                     new Transaction(account.getUserName(),"WITHDRAW", amount, "SUCCESS", "Withdraw successful")
             );
@@ -387,7 +407,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             System.out.println("withDraw failed : "+withDrawResult.getMessage());
         }
 
-        // Additional helpful tips based on failure case
+        // Additional Helpful tips based on failure reason
         if(withDrawResult.getMessage().contains("not found")){
             System.out.println("💡 Tip: Please login again or contact support admin");
         } else if (withDrawResult.getMessage().contains("Insufficient")) {
@@ -397,17 +417,25 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
+    /**
+     * Deposit money into the user's account
+     */
     private void deposit (Account account){
+        // Show account information
         account.printAccountInfo(account);
 
+        // Ask user for deposit amount
         System.out.println("--------------> please enter amount to deposit it.....");
         double amount = readDouble();
 
+        // Call service layer to process deposit
         TransactionResult depositResult = accountService.deposit(account,amount);  // pass the account from signup or login and the amount that you want to deposit it to this account , and this function check on account is exist or not & amount
 
+        // If deposit successful
         if(depositResult.isSuccess()){
             System.out.println(depositResult.getMessage());
             System.out.println("current & updated balance is : " + depositResult.getAccount().getBalance());
+            // Record successful deposit transaction
             transactionService.recordTransaction(
                     new Transaction(
                             account.getUserName(),"Deposit",amount,"Success","Deposit Successful")
@@ -424,7 +452,13 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
-
+    /**
+     * Change user's account password
+     * Steps:
+     * 1. Verify current password
+     * 2. Validate new password format
+     * 3. Update password
+     */
     private void changePassword(Account account) {
         String inputOldPassword = "";
         String inputNewPassword ="";
@@ -526,6 +560,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         System.out.println("══════════════════════════════════════");
     }
 
+    /**
+     * Transfer money from current account to another account
+     */
     private void transferMoney(Account account) {
         System.out.println("══════════════════════════════════════");
         System.out.println("           MONEY TRANSFER              ");
@@ -580,6 +617,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    /**
+     * Display all transactions performed by the user
+     */
     private void showTransactionHistory(Account account) {
         List<Transaction> transactions =
                 transactionService.getUserTransactions(account.getUserName());
@@ -608,6 +648,10 @@ public class ApplicationServiceImpl implements ApplicationService {
                 });
     }
 
+    /**
+     * Deactivate user's account
+     * After deactivation user will not be able to login
+     */
     private void deactivateAccount(Account account) {
         TransactionResult result = accountService.deactivateAccount(account);
 
@@ -619,6 +663,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
+    /**
+     * Permanently delete account from system
+     */
     private void deleteAccount(Account account) {
         System.out.println("⚠️ Are you sure you want to delete your account?");
         System.out.println("1.Yes    2.No");

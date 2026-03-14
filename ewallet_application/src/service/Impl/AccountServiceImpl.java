@@ -6,7 +6,11 @@ import repository.AccountRepository;
 import service.AccountService;
 import java.util.Optional;
 
+/**
+ * This class contains business logic related to accounts
+ */
 public class AccountServiceImpl implements AccountService {
+    // repository used to access account data
     private final AccountRepository accountRepository;
 
     public AccountServiceImpl(AccountRepository accountRepository) {
@@ -14,11 +18,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * createAccount
-     * @param account
-     * @return boolean
-     *         - true if account created
-     *         - false if account not created (username exist)
+     * Create new account
      */
     @Override
     public Account createAccount(Account account) {
@@ -26,10 +26,12 @@ public class AccountServiceImpl implements AccountService {
                 .findByUsername(account.getUserName())
                 .isPresent();
 
+        // check if username already exists
         if(usernameExists){
             return null;
         }
 
+        // check if phone number already exists
         boolean phoneExists = accountRepository
                 .findByPhoneNumber(account.getPhoneNumber())
                 .isPresent();
@@ -38,16 +40,13 @@ public class AccountServiceImpl implements AccountService {
             return null;
         }
 
+        // save account if username & phone are unique
         accountRepository.save(account);  // here we access from object getListOfAccounts that return listOfAccount , and uses it to added the new created account in the signup in the list after checking on this account is present before or what in the system by checking on username
         return account;
     }
 
     /**
-     * getAccountByUserNameAndPassword
-     * @param account
-     * @return boolean
-     *         - true if account found with same userName & password that user used it to login
-     *         - false if account not found with userName & password that user used it to login
+     * Retrieve account using username and password
      */
     @Override
     public Account getAccountByUserNameAndPassword(Account account) {

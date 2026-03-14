@@ -3,8 +3,17 @@ package service.Impl;
 import model.Account;
 import service.ValidationService;
 
+/**
+ * Service responsible for validating user inputs
+ */
 public class ValidationServiceImpl implements ValidationService {
 
+    /**
+     * Username must:
+     * - not be null
+     * - length > 3
+     * - start with uppercase letter
+     */
     @Override
     public boolean validateUserNameFormat(String userName) {
         return userName !=null && userName.length() > 3 && Character.isUpperCase(userName.charAt(0));
@@ -21,12 +30,15 @@ public class ValidationServiceImpl implements ValidationService {
         return password!=null && password.length() > 8 && !password.matches("[a-zA-Z0-9]*");
     }
 
+    /**
+     * Age must be >= 18
+     */
     @Override
     public boolean validateAgeFormat(int age) {
         return age >= 18;
     }
 
-    /**
+    /** [Egyptian phone number validation]
      * 01 >> means All Egyptian mobile numbers start with "01"
      * [0-2,5]{1} >> means One digit that is 0,1,2,or 5 that specifies the third digit of the provider
      * [0-9]{8} >> means Exactly The remaining 8 digits can be any number 0-9
@@ -36,6 +48,9 @@ public class ValidationServiceImpl implements ValidationService {
         return phoneNumber!=null && phoneNumber.matches("01[0125][0-9]{8}");
     }
 
+    /**
+     * Verify password matches stored password
+     */
     @Override
     public boolean validationPasswordMatch(Account account , String inputOldPassword) {
         return inputOldPassword.equals(account.getPassword());

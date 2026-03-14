@@ -7,8 +7,8 @@ public class Account {
     private String phoneNumber;
     private int age;
     private double balance;
-    private boolean active = true;
-    private boolean isAdmin= false;
+    private boolean active = true;    // indicates if account is active or not
+    private boolean isAdmin= false;  // indicates if this account belongs to admin
 
     public Account() {
 
