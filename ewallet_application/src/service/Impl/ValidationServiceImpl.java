@@ -22,7 +22,7 @@ public class ValidationServiceImpl implements ValidationService {
     }
 
     @Override
-    public boolean validateAgeFormat(float age) {
+    public boolean validateAgeFormat(int age) {
         return age >= 18;
     }
 

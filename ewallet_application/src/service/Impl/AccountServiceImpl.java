@@ -22,9 +22,19 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public Account createAccount(Account account) {
-        boolean exists = accountRepository.findByUsernameAndPhoneNumber(account.getUserName(), account.getPhoneNumber()).isPresent();
+        boolean usernameExists = accountRepository
+                .findByUsername(account.getUserName())
+                .isPresent();
 
-        if (exists){  // means if any account in listOfAccounts is finding with same username with username && phoneNumber of Account that user created , so return false that means cannot add this account
+        if(usernameExists){
+            return null;
+        }
+
+        boolean phoneExists = accountRepository
+                .findByPhoneNumber(account.getPhoneNumber())
+                .isPresent();
+
+        if(phoneExists){
             return null;
         }
 
@@ -126,7 +136,7 @@ public class AccountServiceImpl implements AccountService {
 
         } else {
             acc.setPassword(newPassword);
-            return new TransactionResult(account,"✅ password changed successfully",true,"change password");
+            return new TransactionResult(acc,"✅ password changed successfully",true,"change password");
         }
 
     }
@@ -169,12 +179,17 @@ public class AccountServiceImpl implements AccountService {
 
         Account receiver = optionalReceiver.get();
 
-        // case 6 : check amount > 0
+        // case 6 : receiver account is in active
+        if(!receiver.isActive()){
+            return new TransactionResult(null,"❌ Receiver account is inactive",false,"TransferMoney");
+        }
+
+        // case 7 : check amount > 0
         if (amount <= 0){
             return new TransactionResult(null,"❌ Transfer amount must be greater than 0 EGP! ",false,"TransferMoney");
         }
 
-        // case 7 : Check sufficient balance
+        // case 8 : Check sufficient balance
         if (amount>sender.getBalance()){
             return new TransactionResult(null , "❌ Insufficient balance in your account ",false,"TransferMoney");
         }

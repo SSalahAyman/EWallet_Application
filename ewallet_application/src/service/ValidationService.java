@@ -8,7 +8,7 @@ public interface ValidationService {
 
     boolean validatePasswordFormat(String password);
 
-    boolean validateAgeFormat(float age);
+    boolean validateAgeFormat(int age);
 
     boolean validatePhoneNumberFormat(String phoneNumber);
 

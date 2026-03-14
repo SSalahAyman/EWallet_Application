@@ -29,6 +29,12 @@ public class AccountRepository {
                 .findFirst();
     }
 
+    public Optional<Account> findByPhoneNumber(String phoneNumber) {
+        return accounts.stream()
+                .filter(acc -> acc.getPhoneNumber().equals(phoneNumber))
+                .findFirst();
+    }
+
     public void save(Account account) {
         accounts.add(account);
     }

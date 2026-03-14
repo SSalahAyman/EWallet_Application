@@ -143,7 +143,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 showProfile(accountCreated);
 
             } else{
-                System.out.println("username already exist on the system :( .......");
+                System.out.println("username or phone number already exist on the system :( .......");
             }
 
     }
